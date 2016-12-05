@@ -1,8 +1,12 @@
 import { ElementRef, EventEmitter, OnInit } from '@angular/core';
 import 'pdfjs-dist/build/pdf.combined';
+import 'pdfjs-dist/web/pdf_viewer';
 export declare class PdfViewerComponent extends OnInit {
     private element;
+    private static CSS_UNITS;
     private _showAll;
+    private _renderText;
+    private _renderAnnotation;
     private _originalSize;
     private _src;
     private _pdf;
@@ -18,6 +22,8 @@ export declare class PdfViewerComponent extends OnInit {
     src: any;
     page: any;
     pageChange: EventEmitter<number>;
+    renderText: any;
+    renderAnnotation: any;
     originalSize: boolean;
     showAll: boolean;
     zoom: number;
@@ -27,6 +33,6 @@ export declare class PdfViewerComponent extends OnInit {
     private onRender();
     private renderMultiplePages();
     private isValidPageNumber(page);
-    private renderPage(page);
+    private renderPage(pageNumber);
     private removeAllChildNodes(element);
 }
