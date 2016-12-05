@@ -5,6 +5,7 @@ import {
   Component, Input, Output, ElementRef, EventEmitter, OnInit
 } from '@angular/core';
 import 'pdfjs-dist/build/pdf.combined';
+import 'pdfjs-dist/web/pdf_viewer';
 
 @Component({
   selector: 'pdf-viewer',
@@ -34,8 +35,11 @@ import 'pdfjs-dist/build/pdf.combined';
 })
 
 export class PdfViewerComponent extends OnInit {
+  private static CSS_UNITS: number = 96.0 / 72.0;
+
   private _showAll: boolean = false;
   private _renderText: boolean = true;
+  private _renderAnnotation: boolean = true;
   private _originalSize: boolean = true;
   private _src: any;
   private _pdf: any;
@@ -91,6 +95,11 @@ export class PdfViewerComponent extends OnInit {
   @Input('render-text')
   set renderText(renderText) {
     this._renderText = renderText;
+  }
+
+  @Input('render-annotation')
+  set renderAnnotation(renderAnnotation) {
+    this._renderAnnotation = renderAnnotation;
   }
 
   @Input('original-size')
@@ -151,7 +160,9 @@ export class PdfViewerComponent extends OnInit {
   }
 
   private loadPDF(src) {
-    (<any>window).PDFJS.getDocument(src).then((pdf: any) => {
+    PDFJS.workerSrc = 'lib/pdfjs-dist/build/pdf.worker.js';
+
+    (<any>window).PDFJS.getDocument(src).then((pdf: PDFDocumentProxy) => {
       this._pdf = pdf;
       this.lastLoaded = src;
 
@@ -193,73 +204,41 @@ export class PdfViewerComponent extends OnInit {
     return this._pdf.numPages >= page && page >= 1;
   }
 
-  private buildSVG(viewport, textContent) {
-    const SVG_NS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(SVG_NS, 'svg:svg');
-
-    svg.setAttribute('width', viewport.width + 'px');
-    svg.setAttribute('height', viewport.height + 'px');
-    svg.setAttribute('font-size', '1');
-    svg.setAttribute('class', 'textLayer');
-
-    textContent.items.forEach(function (textItem) {
-      const tx = (<any>window).PDFJS.Util.transform(
-          (<any>window).PDFJS.Util.transform(viewport.transform, textItem.transform),
-          [1, 0, 0, -1, 0, 0]
-      );
-      const style = textContent.styles[textItem.fontName];
-      const text = document.createElementNS(SVG_NS, 'svg:text');
-      text.setAttribute('transform', 'matrix(' + tx.join(' ') + ')');
-      text.setAttribute('font-family', style.fontFamily);
-      text.setAttribute('style', `
-                position: absolute;
-                fill: transparent;
-                line-height: 1;
-                white-space: pre;
-                cursor: text;
-            `);
-      text.textContent = textItem.str;
-      svg.appendChild(text);
-    });
-    return svg;
-  }
-
-  private renderPageOverlay(page: any, viewport: any, container: HTMLElement) {
-    page.getTextContent().then(textContent => {
-      let canvas = container.querySelectorAll('canvas')[page.pageIndex];
-      canvas.parentNode.insertBefore(this.buildSVG(viewport, textContent), canvas.nextSibling);
-    });
-  }
-
   private renderPage(pageNumber: number) {
-    return this._pdf.getPage(pageNumber).then((page: any) => {
-      let viewport = page.getViewport(this._zoom, this._rotation);
+    return this._pdf.getPage(pageNumber).then((page: PDFPageProxy) => {
+
+      var scale = this._zoom;
+      var viewport = page.getViewport(this._zoom, this._rotation);
+
       let container = this.element.nativeElement.querySelector('div');
-      let canvas: HTMLCanvasElement = document.createElement('canvas');
-      let div: HTMLElement = document.createElement('div');
 
       if (!this._originalSize) {
-        viewport = page.getViewport(this.element.nativeElement.offsetWidth / viewport.width, this._rotation);
+        scale = this._zoom * (this.element.nativeElement.offsetWidth / page.getViewport(1).width) / PdfViewerComponent.CSS_UNITS;
+        viewport = page.getViewport(scale, this._rotation);
       }
 
       if (!this._showAll) {
         this.removeAllChildNodes(container);
       }
 
-      div.appendChild(canvas);
-      container.appendChild(div);
-
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      page.render({
-        canvasContext: canvas.getContext('2d'),
-        viewport: viewport
-      });
+      var pdfOptions = {
+        container: container,
+        id: pageNumber,
+        scale: scale,
+        defaultViewport: viewport
+      };
 
       if (this._renderText) {
-        this.renderPageOverlay(page, viewport, container);
+        pdfOptions['textLayerFactory'] = new PDFJS.DefaultTextLayerFactory();
       }
+
+      if (this._renderAnnotation) {
+        pdfOptions['annotationLayerFactory'] = new PDFJS.DefaultAnnotationLayerFactory();
+      }
+
+      var pdfPageView = new PDFJS.PDFPageView(pdfOptions);
+      pdfPageView.setPdfPage(page);
+      return pdfPageView.draw();
     });
   }
 
