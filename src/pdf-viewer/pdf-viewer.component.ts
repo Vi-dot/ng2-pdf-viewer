@@ -49,6 +49,7 @@ export class PdfViewerComponent extends OnInit {
   private _rotation: number = 0;
   private isInitialised: boolean = false;
   private lastLoaded: string;
+  private _pageViews: any[];
   @Input('after-load-complete') afterLoadComplete: Function;
 
   constructor(private element: ElementRef) {
@@ -238,13 +239,27 @@ export class PdfViewerComponent extends OnInit {
 
       var pdfPageView = new PDFJS.PDFPageView(pdfOptions);
       pdfPageView.setPdfPage(page);
+      this._pageViews.push(pdfPageView);
       return pdfPageView.draw();
     });
   }
 
   private removeAllChildNodes(element: HTMLElement) {
+    this._pageViews = [];
     while (element.firstChild) {
       element.removeChild(element.firstChild);
+    }
+  }
+
+  public refreshSize() {
+    if (!this._originalSize) {
+      for (let pageView of this._pageViews) {
+        let scale = this._zoom * (this.element.nativeElement.offsetWidth / pageView.pdfPage.getViewport(1).width)
+          / PdfViewerComponent.CSS_UNITS;
+        pageView.update(scale, this._rotation);
+        //pageView.updatePosition();
+        //pageView.draw();
+      }
     }
   }
 }

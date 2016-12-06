@@ -5,7 +5,7 @@
         </div>
     </header>
     <main class="mdl-layout__content">
-        <div class="page-content">
+        <div class="page-content" [ngStyle]="stylePageContent" (window:resize)="onPageResize($event)">
 
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <input [(ngModel)]="pdfSrc" [value]="pdfSrc" class="mdl-textfield__input" type="text" id="pdf-src">
@@ -92,7 +92,8 @@
                 <button (click)="rotate(90)" class="mdl-button mdl-js-button">Rotate right</button>
             </div>
 
-            <pdf-viewer [src]="pdfSrc"
+            <pdf-viewer #myPdfViewer
+                        [src]="pdfSrc"
                         [(page)]="page"
                         [rotation]="rotation"
                         [original-size]="originalSize"
