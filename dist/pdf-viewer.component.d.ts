@@ -6,7 +6,8 @@ export declare class PdfViewerComponent extends OnInit {
     private static CSS_UNITS;
     private _showAll;
     private _renderText;
-    private _renderAnnotation;
+    private _renderLink;
+    private _stickToPage;
     private _originalSize;
     private _src;
     private _pdf;
@@ -16,7 +17,10 @@ export declare class PdfViewerComponent extends OnInit {
     private _rotation;
     private isInitialised;
     private lastLoaded;
-    private _pageViews;
+    private _enhanceTextSelection;
+    private _pageBorder;
+    private _pdfViewer;
+    private _pdfLinkService;
     afterLoadComplete: Function;
     constructor(element: ElementRef);
     ngOnInit(): void;
@@ -24,17 +28,17 @@ export declare class PdfViewerComponent extends OnInit {
     page: any;
     pageChange: EventEmitter<number>;
     renderText: any;
-    renderAnnotation: any;
+    renderLink: any;
     originalSize: boolean;
     showAll: boolean;
+    stickToPage: boolean;
     zoom: number;
     rotation: number;
-    private main();
-    private loadPDF(src);
-    private onRender();
-    private renderMultiplePages();
-    private isValidPageNumber(page);
-    private renderPage(pageNumber);
-    private removeAllChildNodes(element);
-    refreshSize(): void;
+    pageBorder: boolean;
+    enhanceTextSelection: boolean;
+    setupViewer(): void;
+    loadPDF(src?: any): void;
+    render(): void;
+    updateSize(): void;
+    isValidPageNumber(page: number): boolean;
 }
