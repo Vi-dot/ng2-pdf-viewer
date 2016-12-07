@@ -87,6 +87,6 @@ export class AppComponent {
 
   onPageResize() {
     this.updateStylePageContent();
-    this.pdfViewer.refreshSize();
+    this.pdfViewer.updateSize();
   }
 }
