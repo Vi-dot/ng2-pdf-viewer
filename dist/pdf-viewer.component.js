@@ -156,7 +156,7 @@ var PdfViewerComponent = (function (_super) {
         configurable: true
     });
     PdfViewerComponent.prototype.setupViewer = function () {
-        PDFJS.workerSrc = 'lib/pdfjs-dist/build/pdf.worker.js';
+        PDFJS.disableWorker = true;
         PDFJS.disableTextLayer = !this._renderText;
         var container = this.element.nativeElement.querySelector('div');
         var pdfOptions = {

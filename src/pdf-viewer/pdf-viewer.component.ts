@@ -180,7 +180,7 @@ export class PdfViewerComponent extends OnInit {
   }
 
   public setupViewer() {
-    PDFJS.workerSrc = 'lib/pdfjs-dist/build/pdf.worker.js';
+    PDFJS.disableWorker = true;
 
     PDFJS.disableTextLayer = !this._renderText;
 
