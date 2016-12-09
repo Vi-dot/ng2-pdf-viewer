@@ -65,7 +65,7 @@ export class PdfViewerComponent extends OnInit {
     this.isInitialised = true;
   }
 
-  @Input()
+  @Input('src')
   set src(_src) {
     this._src = _src;
 
@@ -74,7 +74,7 @@ export class PdfViewerComponent extends OnInit {
     }
   }
 
-  @Input()
+  @Input('page')
   set page(_page) {
     _page = parseInt(_page, 10);
 
@@ -100,13 +100,17 @@ export class PdfViewerComponent extends OnInit {
   @Input('render-text')
   set renderText(renderText) {
     this._renderText = renderText;
-    this.setupViewer();
+    if (this._pdf) {
+      this.setupViewer();
+    }
   }
 
   @Input('render-link')
   set renderLink(renderLink) {
     this._renderLink = renderLink;
-    this.setupViewer();
+    if (this._pdf) {
+      this.setupViewer();
+    }
   }
 
   @Input('original-size')
@@ -170,17 +174,23 @@ export class PdfViewerComponent extends OnInit {
   @Input('page-border')
   set pageBorder(value: boolean) {
     this._pageBorder = value;
-    this.setupViewer();
+    if (this._pdf) {
+      this.setupViewer();
+    }
   }
 
   @Input('enhance-text-selection')
   set enhanceTextSelection(value: boolean) {
     this._enhanceTextSelection = value;
-    this.setupViewer();
+    if (this._pdf) {
+      this.setupViewer();
+    }
   }
 
   public setupViewer() {
-    PDFJS.disableWorker = true;
+
+    PDFJS.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
+    //PDFJS.disableWorker = true;
 
     PDFJS.disableTextLayer = !this._renderText;
 
@@ -224,7 +234,8 @@ export class PdfViewerComponent extends OnInit {
 
     if (src) {
 
-      (<any>window).PDFJS.getDocument(src).then((pdf: PDFDocumentProxy) => {
+      PDFJS.getDocument(src).then((pdf: PDFDocumentProxy) => {
+
         this._pdf = pdf;
         this.lastLoaded = src;
 
